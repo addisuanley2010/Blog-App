@@ -1,0 +1,3 @@
+[submodule "frontend"]
+    path = frontend
+    url = https://github.com/addisuanley2010/Blog-App/tree/main/frontend
