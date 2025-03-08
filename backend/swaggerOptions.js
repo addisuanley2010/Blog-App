@@ -3,9 +3,9 @@ import swaggerJsDoc from 'swagger-jsdoc';
 
 const swaggerOptions = {
     definition: {
-        openapi: '3.0.0', 
+        // openapi: '3.0.0', 
         info: {
-            title: ' Blog App',
+            title: ' My Blog Appication ',
             version: '1.0.0',
             description: 'API Documentation for Blog App',
             contact: {

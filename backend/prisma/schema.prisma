@@ -25,7 +25,7 @@ model Profile {
   id       Int     @id @default(autoincrement())
   name     String
   gender   String
-  age      String
+  age      Int
   avatar   String? 
   bio      String?
   userId   Int     @unique

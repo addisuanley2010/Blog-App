@@ -3,10 +3,54 @@ import { prisma } from "../prisma.js";
 import { hashPassword } from "../utils/hashPassword.js";
 import { generateToken } from "../utils/generateToken.js";
 const router = express.Router();
-
-// @route   POST api/users
-// @desc    Register a user
-// @access  Public
+/**
+  * @swagger
+  * /api/users:
+  *   post:
+  *     summary: Create a new user
+  *     tags: [Users]
+  *     parameters:
+  *       - in: body
+  *         name: body
+  *         required: true
+  *         schema:
+  *           type: object
+  *           properties:
+  *             email:
+  *               type: string
+  *               format: email
+  *               description: User's email address 
+  *               example: addisu@gmail.com
+  *             password:
+  *               type: string
+  *               format: password
+  *               description: User's password
+  *               example: password123
+  *     responses:
+  *       201:
+  *         description: User created successfully
+  *         content:
+  *           application/json:
+  *             schema:
+  *               type: object
+  *               properties:
+  *                 token:
+  *                   type: string
+  *                   description: JWT authentication token
+  *                 user:
+  *                   type: object
+  *                   properties:
+  *                     id:
+  *                       type: string
+  *                     email:
+  *                       type: string
+  *                     username:
+  *                       type: string
+  *       400:
+  *         description: User already exists 
+  *       500:
+  *         description: Server Error
+  */
 router.post("/", async (req, res) => {
   const { email, password } = req.body;
 
@@ -19,22 +63,19 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
-
-    const hashedPassword =await  hashPassword(password);
+    const hashedPassword = await hashPassword(password);
 
     const user = await prisma.user.create({
       data: {
         email,
         password: hashedPassword,
-        username: email.split("@")[0], 
+        username: email.split("@")[0],
         status: "ONLINE",
         lastActive: new Date(),
       },
     });
 
-
-    const token =await generateToken(user.id)
-    
+    const token = await generateToken(user.id);
 
     res.status(201).json({
       token,
@@ -50,9 +91,27 @@ router.post("/", async (req, res) => {
   }
 });
 
-// @route   GET api/users/:id
-// @desc    Get user by ID
-// @access  Private
+/**
+ * @swagger
+ * /api/users/{id}:
+ *   get:
+ *     summary: Get a user by ID
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: User ID
+ *     responses:
+ *       200:
+ *         description: A user object
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server Error
+ */
 router.get("/:id", async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
@@ -62,13 +121,8 @@ router.get("/:id", async (req, res) => {
       include: {
         profile: true,
         posts: true,
-
-        messages: true,
-        chats: {
-          include: {
-            chat: true,
-          },
-        },
+        comments: true,
+        likes: true,
       },
     });
 
@@ -83,18 +137,17 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// @route   GET api/users
-// @desc    Get all users
-// @access  Public
-
 /**
  * @swagger
  * /api/users:
  *   get:
- *     summary: Retrieve a list of users
+ *     summary: Users list
+ *     tags: [Users]
  *     responses:
  *       200:
  *         description: A list of users
+ *       500:
+ *         description: Server Error
  */
 router.get("/", async (req, res) => {
   try {
@@ -116,10 +169,46 @@ router.get("/", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
-
-// @route   PUT api/users/:id/profile
-// @desc    Update user profile
-// @access  public
+/**
+ * @swagger
+ * /api/users/{id}:
+ *   put:
+ *     summary: Update user profile
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         example: 1
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: User ID
+ *       - in: body
+ *         name: body
+ *         required: true
+ *         schema:
+ *           type: object
+ *           properties:
+ *             name:
+ *               type: string
+ *               description: User name
+ *               example: John Doe
+ *             gender:
+ *               type: string
+ *               description: User gender
+ *               example: Male
+ *             age:
+ *               type: integer
+ *               description: User age
+ *               example: 30
+ *     responses:
+ *       200:
+ *         description: User profile updated
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server Error
+ */
 router.put("/:id", async (req, res) => {
   const { name, gender, age } = req.body;
 
@@ -148,22 +237,49 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-// @route   DELETE api/users/:id/profile
-// @desc    DELETE user
-// @access  public
+/**
+ * @swagger
+ * /api/users/{id}:
+ *   delete:
+ *     summary: Delete a user by ID
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           description: User ID
+ *     responses:
+ *       200:
+ *         description: User deleted successfully
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server Error
+ */
 router.delete("/:id", async (req, res) => {
   try {
-    const user = await prisma.user.delete({
+    const user = await prisma.user.findUnique({
       where: {
         id: parseInt(req.params.id),
       },
     });
 
-    res.json(user);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    await prisma.user.delete({
+      where: {
+        id: parseInt(req.params.id),
+      },
+    });
+ 
+    res.status(200).json({ message: "User deleted successfully",user });
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ message: "Server Error" });
   }
 });
-
 export default router;
