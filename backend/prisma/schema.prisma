@@ -8,17 +8,19 @@ generator client {
 }
 
 model User {
-  id         Int      @id @default(autoincrement())
-  email      String   @unique
-  password   String
-  username   String   @unique
-  status     String   @default("OFFLINE")
-  lastActive DateTime @default(now())
-  createdAt  DateTime @default(now())
-  profile    Profile? 
-  posts      Post[]
-  comments   Coment[]
-  likes      Like[]
+  id            Int            @id @default(autoincrement())
+  email         String        @unique
+  password      String
+  username      String        @unique
+  status        String        @default("OFFLINE")
+  lastActive    DateTime      @default(now())
+  createdAt     DateTime      @default(now())
+  role          String        @default("user")
+  profile       Profile? 
+  posts         Post[]
+  comments      Coment[]
+  likes         Like[]
+  notifications Notification[]
 }
 
 model Profile {
@@ -33,13 +35,14 @@ model Profile {
 }
 
 model Post{
-  id        Int      @id @default(autoincrement())
-  content   String
-  createdAt DateTime @default(now())
-  authorId  Int      
-  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade,onUpdate: Cascade)
-  comments  Coment[]
-  likes     Like[]
+  id            Int            @id @default(autoincrement())
+  content       String
+  createdAt     DateTime      @default(now())
+  authorId      Int      
+  author        User         @relation(fields: [authorId], references: [id], onDelete: Cascade,onUpdate: Cascade)
+  comments      Coment[]
+  likes         Like[]
+  notifications Notification[]
 }
 
 model Coment{
@@ -59,4 +62,16 @@ model Like{
   postId Int
   post Post @relation(fields: [postId], references: [id], onDelete: Cascade,onUpdate: Cascade)
   author User @relation(fields: [userId], references: [id], onDelete: Cascade,onUpdate: Cascade)
+}
+model Notification{
+
+  id Int @id @default(autoincrement())
+  content String
+  isRead Boolean @default(false)
+  createdAt DateTime @default(now())
+  postId Int
+  userId Int
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
 }
