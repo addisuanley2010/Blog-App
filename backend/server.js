@@ -4,7 +4,9 @@ import { Server } from "socket.io";
 import cors from "cors";
 import userRouter from "./routes/user.js";
 import postRouter from "./routes/post.js";
+import LikeRouter from "./routes/like.js";
 import commetRouter from "./routes/comment.js";
+
 
 import { swaggerDocs } from "./swaggerOptions.js";
 import swaggerUI from "swagger-ui-express";
@@ -27,6 +29,8 @@ app.use(express.json());
 app.use("/api/users", userRouter);
 app.use("/api/posts", postRouter);
 app.use("/api/comments", commetRouter);
+app.use("/api/likes", LikeRouter);
+
 
 // Serve Swagger API documentation
 app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerDocs));

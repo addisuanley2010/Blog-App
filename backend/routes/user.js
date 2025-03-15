@@ -3,6 +3,10 @@ import { prisma } from "../prisma.js";
 import { hashPassword } from "../utils/hashPassword.js";
 import { generateToken } from "../utils/generateToken.js";
 import { comparePassword } from "../utils/comparePassword.js";
+import {
+  authentication,
+  authorization,
+} from "../middlewares/authMiddleware.js";
 const router = express.Router();
 /**
  * @swagger
@@ -111,7 +115,9 @@ router.post("/", async (req, res) => {
  * @swagger
  * /api/users/{id}:
  *   get:
- *     summary: Get a user by ID
+ *     summary: Get a user by ID(only admin and owener of account)
+ *     security:
+ *      - BearerAuth: []
  *     tags: [Users]
  *     parameters:
  *       - in: path
@@ -128,36 +134,51 @@ router.post("/", async (req, res) => {
  *       500:
  *         description: Server Error
  */
-router.get("/:id", async (req, res) => {
-  try {
-    const user = await prisma.user.findUnique({
-      where: {
-        id: parseInt(req.params.id),
-      },
-      include: {
-        profile: true,
-        posts: true,
-        comments: true,
-        likes: true,
-      },
-    });
+router.get(
+  "/:id",
+  authentication,
+  authorization(["admin", "user"]),
+  async (req, res) => {
+    try {
+      const { userId, role } = req.user;
+      const id = parseInt(req.params.id);
+      if (userId == id || role == "admin") {
+        const user = await prisma.user.findUnique({
+          where: {
+            id,
+          },
+          include: {
+            profile: true,
+            posts: true,
+            comments: true,
+            likes: true,
+          },
+        });
 
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        res.json(user);
+      } else {
+        return res
+          .status(500)
+          .json({ message: "you have no sufficent privilage" });
+      }
+    } catch (err) {
+      console.error(err.message);
+      res.status(500).json({ message: "Server Error" });
     }
-
-    res.json(user);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ message: "Server Error" });
   }
-});
+);
 
 /**
  * @swagger
  * /api/users:
  *   get:
- *     summary: Users list
+ *     summary: Users list (only admin )
+ *     security:
+ *      - BearerAuth: []
  *     tags: [Users]
  *     responses:
  *       200:
@@ -165,7 +186,7 @@ router.get("/:id", async (req, res) => {
  *       500:
  *         description: Server Error
  */
-router.get("/", async (req, res) => {
+router.get("/", authentication, authorization(["admin"]), async (req, res) => {
   try {
     const users = await prisma.user.findMany({
       orderBy: {
@@ -187,36 +208,31 @@ router.get("/", async (req, res) => {
 });
 /**
  * @swagger
- * /api/users/{id}:
+ * /api/users:
  *   put:
  *     summary: Update user profile
+ *     security:
+ *       - BearerAuth: []
  *     tags: [Users]
- *     parameters:
- *       - in: path
- *         name: id
- *         example: 1
- *         required: true
- *         schema:
- *           type: integer
- *         description: User ID
- *       - in: body
- *         name: body
- *         required: true
- *         schema:
- *           type: object
- *           properties:
- *             name:
- *               type: string
- *               description: User name
- *               example: John Doe
- *             gender:
- *               type: string
- *               description: User gender
- *               example: Male
- *             age:
- *               type: integer
- *               description: User age
- *               example: 30
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: User name
+ *                 example: John Doe
+ *               gender:
+ *                 type: string
+ *                 description: User gender
+ *                 example: Male
+ *               age:
+ *                 type: integer
+ *                 description: User age
+ *                 example: 30
  *     responses:
  *       200:
  *         description: User profile updated
@@ -225,13 +241,13 @@ router.get("/", async (req, res) => {
  *       500:
  *         description: Server Error
  */
-router.put("/:id", async (req, res) => {
+router.put("/", authentication, async (req, res) => {
   const { name, gender, age } = req.body;
-
+  const id = req.user.userId;
   try {
     const profile = await prisma.profile.upsert({
       where: {
-        userId: parseInt(req.params.id),
+        userId: parseInt(id),
       },
       update: {
         name,
@@ -242,7 +258,7 @@ router.put("/:id", async (req, res) => {
         name,
         gender,
         age,
-        userId: parseInt(req.params.id),
+        userId: parseInt(id),
       },
     });
 
@@ -257,7 +273,9 @@ router.put("/:id", async (req, res) => {
  * @swagger
  * /api/users/{id}:
  *   delete:
- *     summary: Delete a user by ID
+ *     summary: Delete a user by ID(admin only)
+ *     security:
+ *      - BearerAuth: []
  *     tags: [Users]
  *     parameters:
  *       - in: path
@@ -274,30 +292,35 @@ router.put("/:id", async (req, res) => {
  *       500:
  *         description: Server Error
  */
-router.delete("/:id", async (req, res) => {
-  try {
-    const user = await prisma.user.findUnique({
-      where: {
-        id: parseInt(req.params.id),
-      },
-    });
+router.delete(
+  "/:id",
+  authentication,
+  authorization(["admin"]),
+  async (req, res) => {
+    try {
+      const user = await prisma.user.findUnique({
+        where: {
+          id: parseInt(req.params.id),
+        },
+      });
 
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      await prisma.user.delete({
+        where: {
+          id: parseInt(req.params.id),
+        },
+      });
+
+      res.status(200).json({ message: "User deleted successfully", user });
+    } catch (err) {
+      console.error(err.message);
+      res.status(500).json({ message: "Server Error" });
     }
-
-    await prisma.user.delete({
-      where: {
-        id: parseInt(req.params.id),
-      },
-    });
-
-    res.status(200).json({ message: "User deleted successfully", user });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ message: "Server Error" });
   }
-});
+);
 /**
  * @swagger
  * /api/users/login:
@@ -346,7 +369,6 @@ router.delete("/:id", async (req, res) => {
  *         description: Server Error
  */ router.post("/login", async (req, res) => {
   const { email, password } = req.body;
-  console.log(email, password);
   try {
     const user = await prisma.user.findUnique({
       where: {
