@@ -39,6 +39,7 @@ model Post{
   content       String
   createdAt     DateTime      @default(now())
   authorId      Int      
+  image         String?
   author        User         @relation(fields: [authorId], references: [id], onDelete: Cascade,onUpdate: Cascade)
   comments      Coment[]
   likes         Like[]

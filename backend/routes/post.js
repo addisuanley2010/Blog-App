@@ -2,9 +2,8 @@ import express from "express";
 const router = express.Router();
 import { io } from "../server.js";
 import { prisma } from "../prisma.js";
-import {
-  authentication,
-} from "../middlewares/authMiddleware.js";
+import { upload } from "../utils/imageUpload.js";
+import { authentication } from "../middlewares/authMiddleware.js";
 /**
  * @swagger
  * /api/posts:
@@ -16,13 +15,17 @@ import {
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
- *               content:
+ *               image:
  *                 type: string
- *                 description: The content of the post
+ *                 format: binary
+ *                 description: The image file to upload. Acceptable formats are JPEG, PNG, and GIF.
+ *               content:
+ *                  type: string
+ *                  description: User's post content
  *     responses:
  *       201:
  *         description: Post created successfully
@@ -33,16 +36,29 @@ import {
  *       500:
  *         description: Server Error
  */
-router.post("/", authentication, async (req, res) => {
+router.post("/", authentication, upload.single("image"), async (req, res) => {
   const { userId } = req.user;
   const { content } = req.body;
-  const post = await prisma.post.create({
-    data: { content, authorId: parseInt(userId) },
-  });
-  io.emit("newPost", post);
-  res.json({ post, user: req.user });
-});
-/**
+  try {
+   
+    const newPost = await prisma.post.create({
+      data: { 
+        content: content,
+        image: req.file? req.file.path: null,
+        authorId: parseInt(userId) 
+      },
+    });
+    io.emit("newPost", newPost);
+    res.status(201).json({
+      message: "Post created successfully",
+      post: newPost,
+      user: req.user
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: "Server Error" });
+  }
+});/**
  * @swagger
  * /api/posts/{id}:
  *   put:
@@ -80,8 +96,8 @@ router.post("/", authentication, async (req, res) => {
   try {
     const { id } = req.params;
     const { content } = req.body;
-    const userId = req.user.userId; 
-    const userRole = req.user.role; 
+    const userId = req.user.userId;
+    const userRole = req.user.role;
 
     const post = await prisma.post.findUnique({
       where: { id: parseInt(id) },
@@ -92,11 +108,9 @@ router.post("/", authentication, async (req, res) => {
     }
 
     if (post.authorId !== userId && userRole !== "admin") {
-      return res
-        .status(403)
-        .json({
-          error: "Forbidden - You do not have permission to update this post",
-        });
+      return res.status(403).json({
+        error: "Forbidden - You do not have permission to update this post",
+      });
     }
 
     const updatedPost = await prisma.post.update({
@@ -139,7 +153,7 @@ router.post("/", authentication, async (req, res) => {
 
 router.delete("/:id", authentication, async (req, res) => {
   const { id } = req.params;
-  const { userId ,role} = req.user;
+  const { userId, role } = req.user;
   const post = await prisma.post.findUnique({
     where: { id: parseInt(id) },
   });
@@ -149,11 +163,9 @@ router.delete("/:id", authentication, async (req, res) => {
   }
 
   if (post.authorId !== userId && role !== "admin") {
-    return res
-      .status(403)
-      .json({
-        error: "Forbidden - You do not have permission to delete this post",
-      });
+    return res.status(403).json({
+      error: "Forbidden - You do not have permission to delete this post",
+    });
   }
   await prisma.post.delete({
     where: { id: parseInt(id) },
@@ -241,7 +253,7 @@ router.get("/:id", async (req, res) => {
             },
           },
         },
-        likes:true
+        likes: true,
       },
     });
 
