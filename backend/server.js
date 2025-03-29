@@ -10,7 +10,7 @@ import { swaggerDocs } from "./swaggerOptions.js";
 import swaggerUI from "swagger-ui-express";
 import path from "path";
 
-
+  
 const app = express();
 const server = http.createServer(app);
 export const io = new Server(server, {
@@ -22,16 +22,14 @@ export const io = new Server(server, {
 
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static(path.join("./uploads")));
 
 // Routes
 app.use("/api/users", userRouter);
 app.use("/api/posts", postRouter);
 app.use("/api/comments", commentRouter);
 app.use("/api/likes", likeRouter);
-// app.use("/api/images", imageRouter);
-
-// Serve static files from the 'public' directory
-// app.use('/images', express.static(path.join(__dirname, 'public/images')));
+// app.use('/uploads', express.static(path.join('./', 'uploads')));// Serve static files from the 'public' directory
 
 // Serve Swagger API documentation
 app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerDocs));

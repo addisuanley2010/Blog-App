@@ -197,6 +197,19 @@ router.get("/", async (req, res) => {
             username: true,
           },
         },
+        comments: {
+          select: {
+            content: true,
+            author: {
+              select: {
+                username: true,
+                role: true,
+                email: true,
+              },
+            },
+          },
+        },
+        likes: true,
       },
     });
 
