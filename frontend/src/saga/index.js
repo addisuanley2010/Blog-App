@@ -1,6 +1,10 @@
 
-import watchFetchPost from "./postSaga";
-// Root saga
+import { all } from "redux-saga/effects";
+import { watcUserSaga } from "./userSaga";
+import {watchPostSaga} from "./postSaga"
 export default function* rootSaga() {
-  yield watchFetchPost();
+  yield all([
+     watchPostSaga(),
+     watcUserSaga(),
+  ]);
 }

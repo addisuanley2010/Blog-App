@@ -376,15 +376,17 @@ router.delete(
       },
     });
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+       res.json({ message: "User not found" });
     }
     const isMatch = await comparePassword(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Invalid credentials" });
+       res.json({ message: "Invalid credentials" });
     }
     const token = await generateToken(user.id, user.role, user.username);
     res.json({
+      message: "user logged in successfully!",
       token,
+      isAuthenticated: true,
       user: {
         id: user.id,
         email: user.email,
@@ -396,6 +398,13 @@ router.delete(
     console.error(err.message);
     res.status(500).json({ message: "Server Error" });
   }
+ });
+
+ router.get("/check/auth", authentication, (req, res) => {
+  const user = req.user;
+  res.send({ success: true, message: "authenticated user", user, token: "", isAuthenticated: true })
+
 });
 
 export default router;
+     

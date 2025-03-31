@@ -1,19 +1,41 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import HomePage from "./page/HomePage";
-import NotFoundPage from "./page/NotFoundPage";
-import Login from "./page/Login";
+import React, { useEffect } from "react";
+import { Routes, Route } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import LoadingSpinner from "./component/LoadingSpinner";
+import AdminRouteWrapper from "./route/AdminRouteWrapper";
+import PrivateRouteWrapper from "./route/PrivateRouteWrapper";
+import PublicRouteWrapper from "./route/PublicRouteWrapper";
 
 const App = () => {
-  return (
-    <Router>
-      <Routes>
+  const dispatch = useDispatch();
 
-      <Route path="/login" element={<Login />} />
-      <Route path="/" element={<HomePage />} />
-      <Route path="/*" element={<NotFoundPage />} />
-      </Routes>
-    </Router>
+  useEffect(() => {
+    // dispatch({ type: "post/fetchPostRequest" });
+    dispatch({ type: "user/check-auth" });
+  }, [dispatch]);
+
+  const { isAuthenticated, user, loading, error } = useSelector(
+    (state) => state.userData
+  );
+
+  if (loading) return <LoadingSpinner />;
+  if (error) return <ErrorMessage message={error} />;
+  return (
+    <Routes>
+      {!isAuthenticated ? (
+        <>
+          <Route path="/*" element={<PublicRouteWrapper />} />
+        </>
+      ) : user.role === "admin" ? (
+        <>
+          <Route path="/*" element={<AdminRouteWrapper />} />
+        </>
+      ) : (
+        <>
+          <Route path="/*" element={<PrivateRouteWrapper />} />
+        </>
+      )}
+    </Routes>
   );
 };
 

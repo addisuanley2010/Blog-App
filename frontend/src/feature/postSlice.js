@@ -12,14 +12,17 @@ const postSlice = createSlice({
     fetchPostRequest: (state) => {
       state.loading = true;
       state.error = null;
+      return state;
     },
     fetchPostSuccess: (state, action) => {
       state.loading = false;
       state.post = action.payload;
+      return state;
     },
     fetchPostFailure: (state, action) => {
       state.loading = false;
       state.error = action.payload;
+      return state;
     },
   },
 });

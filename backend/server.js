@@ -15,7 +15,7 @@ const app = express();
 const server = http.createServer(app);
 export const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: "http://localhost:5173",
     methods: ["GET", "POST", "PUT", "DELETE"],
   },
 });
@@ -29,7 +29,6 @@ app.use("/api/users", userRouter);
 app.use("/api/posts", postRouter);
 app.use("/api/comments", commentRouter);
 app.use("/api/likes", likeRouter);
-// app.use('/uploads', express.static(path.join('./', 'uploads')));// Serve static files from the 'public' directory
 
 // Serve Swagger API documentation
 app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerDocs));
