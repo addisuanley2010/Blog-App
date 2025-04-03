@@ -1,27 +1,54 @@
-import React from "react";
+import React, { useState } from "react";
 import LikeButton from "./LikeButton";
 import CommentSection from "./CommentSection";
 import { api } from "../utils/api";
+import { useSelector } from "react-redux";
+import { FaUserCircle } from "react-icons/fa"; 
 const PostItem = ({ post }) => {
-  const { id, content, createdAt, author, image, comments,likes } = post;
+  const { isAuthenticated } = useSelector((state) => state.userData);
+  const { id, content, createdAt, author, image, comments, likes } = post;
+
+  const [isExpanded, setIsExpanded] = useState(false);
+  const maxLength = 350; 
+
+  const toggleExpand = () => {
+    setIsExpanded(!isExpanded);
+  };
 
   return (
-    <div className="post-item border p-4 rounded shadow mb-4">
-      <h2 className="font-bold">{author.username}</h2>
-      <p className="text-gray-700">{content}</p>
-      {image && (
-        <img
-          src={`${api}/${image}`}
-          alt={`Post ${id}`}
-          className="mt-2 rounded"
-        />
-      )}
-      <p className="text-gray-500 text-sm">
-        Created at: {new Date(createdAt).toLocaleString()}
+    <div className="bg-white border rounded-lg shadow-lg p-6 mb-6 grid grid-cols-1 gap-4">
+      <div className="flex items-center mb-4">
+        <FaUserCircle className="text-gray-500 text-2xl mr-2" /> {/* Profile icon */}
+        <h2 className="font-bold text-lg">{author.username}</h2>
+      </div>
+      <p className="text-gray-800 text-base mb-4">
+        {isExpanded || content.length <= maxLength
+          ? content
+          : `${content.substring(0, maxLength)}...`}
+        {content.length > maxLength && (
+          <button
+            onClick={toggleExpand}
+            className="text-blue-500 hover:underline ml-1"
+          >
+            {isExpanded ? "Read less" : "Read more"}
+          </button>
+        )}
       </p>
-      <div className="flex justify-start  mt-4 items-start gap-4">
-        <LikeButton myLikes={likes}/>
-        <CommentSection myComments={comments} />
+      {image && (
+        <div className="overflow-hidden rounded-lg shadow-md mb-4">
+          <img
+            src={`${api}/${image}`}
+            alt={`Post ${id}`}
+            className="w-full h-64 object-cover transition-transform transform hover:scale-105"
+          />
+        </div>
+      )}
+      <p className="text-gray-500 text-sm mb-4">
+        Posted on: {new Date(createdAt).toLocaleString()}
+      </p>
+      <div className="flex justify-start items-center gap-4">
+        {isAuthenticated && <LikeButton myLikes={likes} />}
+        {isAuthenticated && <CommentSection myComments={comments} />}
       </div>
     </div>
   );

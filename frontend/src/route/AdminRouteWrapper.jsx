@@ -1,26 +1,30 @@
-import React from "react";
-import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 import NotFoundPage from "../page/common/NotFoundPage";
 import Dashboard from "../page/admin/Dashboard";
-import MangageUser from "../page/admin/MangageUser";
-import Logout from "../utils/Logout";
+import ManageUser from "../page/admin/ManageUser";
+import HomePage from "../page/public/HomePage";
+import Header from "../component/Header";
+import Profile from "../component/Profile";
+import { AdminPaths } from "../utils/Paths";
 
-const AdminRouteWrapper = ({ path, element }) => {
-  const navigate = useNavigate();
+const AdminRouteWrapper = () => {
+  const [isModalOpen, setModalOpen] = useState(false);
+  const toggleModal = () => {
+    setModalOpen(!isModalOpen);
+  };
+
   return (
     <>
-      <div className=" flex gap-4">
-        <Logout />
-        <button onClick={() => navigate("/user")}>manage user</button>
-        <button onClick={() => navigate("/")}>home </button>
-      </div>
-
-      <Routes>
-        <Route index path="/" element={<Dashboard />} />
-        <Route path="/user" element={<MangageUser />} />
-        <Route path="/*" element={<NotFoundPage />} />
-        <Route path="/login/*" element={<Navigate to="/" />} />
-      </Routes>
+      <Header message={"Admin Panel"} paths={AdminPaths} toggleModal={toggleModal} />
+        <Routes>
+          <Route index path="/dashboard" element={<Dashboard />} />
+          <Route path="/" element={<HomePage />} />
+          <Route path="/user" element={<ManageUser />} />
+          <Route path="/*" element={<NotFoundPage />} />
+          <Route path="/login/*" element={<Navigate to="/" />} />
+        </Routes>
+      {isModalOpen && <Profile toggleModal={ toggleModal} />}
     </>
   );
 };

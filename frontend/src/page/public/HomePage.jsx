@@ -7,16 +7,18 @@ import ErrorMessage from "../common/ErrorMessage";
 
 function HomePage() {
   const dispatch = useDispatch();
-  const { post } = useSelector((state) => state.postData);
+  const { post, error,loading } = useSelector((state) => state.postData);
 
   useEffect(() => {
     // dispatch(fetchPostRequest());
-    dispatch({ type: 'post/fetchPostRequest' });
+    dispatch({ type: "post/fetchPostRequest" });
   }, [dispatch]);
+  if (error) return <ErrorMessage />;
+  if (loading) return <LoadingSpinner />;
 
   return (
     <div>
-      <PostList posts={post} />
+      <PostList posts={post}  />
     </div>
   );
 }

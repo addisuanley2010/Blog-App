@@ -343,7 +343,7 @@ router.delete(
  *                 type: string
  *                 format: password
  *                 description: User's password
- *                 example: password123
+ *                 example: 123
  *     responses:
  *       200:
  *         description: Login successful
@@ -376,27 +376,28 @@ router.delete(
       },
     });
     if (!user) {
-       res.json({ message: "User not found" });
+       return res.json({ message: "User not found",success:false });
     }
     const isMatch = await comparePassword(password, user.password);
     if (!isMatch) {
-       res.json({ message: "Invalid credentials" });
+      return res.json({ message: "incorrect password" ,success:false});
     }
     const token = await generateToken(user.id, user.role, user.username);
-    res.json({
-      message: "user logged in successfully!",
+   return res.json({
+     message: "user logged in successfully!",
+     success:true,
       token,
       isAuthenticated: true,
-      user: {
+      user: { 
         id: user.id,
         email: user.email,
         username: user.username,
         role: user.role,
       },
-    });
+    }); 
   } catch (err) {
     console.error(err.message);
-    res.status(500).json({ message: "Server Error" });
+    res.status(500).json({ message: "Server Error",success:false });
   }
  });
 

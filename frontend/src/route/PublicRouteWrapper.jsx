@@ -1,19 +1,17 @@
 import React from "react";
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import Login from "../page/public/Login";
 import Registration from "../page/public/Registration";
 import HomePage from "../page/public/HomePage";
 import NotFoundPage from "../page/common/NotFoundPage";
+import Header from "../component/Header";
+import { publicPaths } from "../utils/Paths";
 
 const PublicRouteWrapper = ({ path, element }) => {
-  const navigate = useNavigate();
+
   return (
     <>
-      <div className=" flex gap-4">
-        <button onClick={() => navigate("/")}>home</button>
-        <button onClick={() => navigate("/login")}>login</button>
-        <button onClick={() => navigate("/registration")}>registration </button>
-      </div>
+      <Header message={"Adda's Blog Application"} paths={publicPaths}/>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/registration" element={<Registration />} />

@@ -3,6 +3,7 @@ import { api } from "../utils/api";
 import axios from "axios";
 
 import { addUserToStore, loading } from "../feature/userSlice";
+import MyToast from "../utils/MyToast";
 
 function* handleLogin(action) {
   yield put(loading(true));
@@ -18,8 +19,11 @@ function* handleLogin(action) {
       localStorage.setItem("token", token);
     }
     yield put(addUserToStore(response.data));
+    MyToast(response.data.message,response.data.success?"success":"error")
   } catch (error) {
     yield put(loading(false));
+    MyToast(error.message,"error")
+
   }
 }
 

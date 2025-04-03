@@ -1,6 +1,6 @@
 import React from 'react'
 
-const MangageUser = () => {
+const ManageUser = () => {
   return (
     <div>
      <h1>I am Admin . I'm gonna manage user data!</h1> 
@@ -8,4 +8,4 @@ const MangageUser = () => {
   )
 }
 
-export default MangageUser
+export default ManageUser
