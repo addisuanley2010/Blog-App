@@ -1,31 +1,41 @@
-// src/components/LikeButton.js
-
-import React, { useState } from 'react';
-import { SlLike } from 'react-icons/sl';
-
-const LikeButton = ({myLikes}) => {
+import React, { useEffect, useState } from "react";
+import { SlLike } from "react-icons/sl";
+import { useDispatch, useSelector } from "react-redux";
+import { AiFillLike } from "react-icons/ai";
+const LikeButton = ({ myLikes, postId }) => {
+  const { user } = useSelector((state) => state.userData);
   const [likes, setLikes] = useState(myLikes);
   const [isLiked, setIsLiked] = useState(false);
+  const dispatch = useDispatch();
+  const userId = user?.userId;
+
+  useEffect(() => {
+    const likedByUser = likes.some((like) => like.userId === userId);
+    setIsLiked(likedByUser);
+  }, [likes, userId]);
 
   const handleLike = () => {
+    dispatch({
+      type: "post/like",
+      payload:{postId,callback:myCallBack},
+    });
     
-    if (isLiked) {
-      setLikes((likes.length) - 1);
-    } else {
-      setLikes((likes.length )+ 1);
-    }
-    setIsLiked(!isLiked);
+  };
+  const myCallBack = () => {
+    isLiked
+      ? setLikes((prevLikes) =>
+          prevLikes.filter((like) => like.userId !== userId)
+        )
+      : setLikes((prevLikes) => [...prevLikes, { userId }]);
+
+    setIsLiked((prev) => !prev);
   };
 
   return (
-    <button 
-      onClick={handleLike} 
-      className={`flex items-center px-4 py-2 my-6 rounded-md shadow-md transition duration-200 ease-in-out 
-                  ${isLiked ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'}`}
-    >
-      <SlLike className={`mr-2 ${isLiked ? 'text-white' : 'text-blue-600'}`} />
-      <span className={`font-semibold text-lg transition-transform duration-200 ${isLiked ? 'scale-110' : ''}`}>
-        {likes.length }
+    <button className="flex items-center flex-col "
+      onClick={handleLike}  >
+      <>{isLiked ? <AiFillLike className="text-red-600 text-3xl" /> : <SlLike />}</>
+      <span className="text-xs italic text-rose-400 underline"> {likes.length > 0 && likes.length+" Likes"}
       </span>
     </button>
   );

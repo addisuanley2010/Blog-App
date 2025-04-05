@@ -1,22 +1,33 @@
-
 import React, { useState } from "react";
 import { TfiComments } from "react-icons/tfi";
+import { useDispatch } from "react-redux";
 
-const CommentSection = ({ myComments }) => {
+const CommentSection = ({ myComments, postId }) => {
   const [comments, setComments] = useState(myComments);
   const [newComment, setNewComment] = useState("");
   const [toggle, setToggle] = useState(false);
+  const dispatch = useDispatch();
+
 
   const handleCommentSubmit = (e) => {
     e.preventDefault();
-    if (newComment) {
-      setComments([...comments, { content: newComment }]);
-      setNewComment("");
-    }
+
+    dispatch({
+      type: "post/comment",
+      payload: {
+        postId: postId,
+        comment: newComment,
+        callback: myCallBack,
+      },
+    });
   };
 
+  const myCallBack = () => {
+    setComments((prevComments) => [...prevComments, { content: newComment }]);
+    setNewComment("");
+  };
   return (
-    <div className="border-t border-gray-300 mt-4 pt-4">
+    <div className="mb-4">
       <button 
         onClick={() => setToggle(!toggle)} 
         className="flex items-center text-blue-500 hover:text-blue-700 transition duration-200"

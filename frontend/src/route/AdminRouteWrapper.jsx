@@ -7,7 +7,7 @@ import HomePage from "../page/public/HomePage";
 import Header from "../component/Header";
 import Profile from "../component/Profile";
 import { AdminPaths } from "../utils/Paths";
-
+import MyPost from "../page/private/MyPost";
 const AdminRouteWrapper = () => {
   const [isModalOpen, setModalOpen] = useState(false);
   const toggleModal = () => {
@@ -19,7 +19,9 @@ const AdminRouteWrapper = () => {
       <Header message={"Admin Panel"} paths={AdminPaths} toggleModal={toggleModal} />
         <Routes>
           <Route index path="/dashboard" element={<Dashboard />} />
-          <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<HomePage />} />
+        <Route path="/mypost" element={<MyPost />} />
+
           <Route path="/user" element={<ManageUser />} />
           <Route path="/*" element={<NotFoundPage />} />
           <Route path="/login/*" element={<Navigate to="/" />} />

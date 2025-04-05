@@ -26,6 +26,7 @@ import { authentication } from "../middlewares/authMiddleware.js";
  *               content:
  *                  type: string
  *                  description: User's post content
+ *                  example: "This is a sample post content"
  *     responses:
  *       201:
  *         description: Post created successfully
@@ -296,7 +297,7 @@ router.get("/:id", async (req, res) => {
 router.get("/mypost/posts", authentication, async (req, res) => {
   const { userId } = req.user;
   console.log(userId, "this is my id");
-  try {
+  try {  
     const posts = await prisma.post.findMany({
       where: {
         authorId: parseInt(userId),

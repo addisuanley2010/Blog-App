@@ -47,8 +47,8 @@ const PostItem = ({ post }) => {
         Posted on: {new Date(createdAt).toLocaleString()}
       </p>
       <div className="flex justify-start items-center gap-4">
-        {isAuthenticated && <LikeButton myLikes={likes} />}
-        {isAuthenticated && <CommentSection myComments={comments} />}
+        {isAuthenticated && <LikeButton myLikes={likes} postId={id} />}
+        {isAuthenticated && <CommentSection myComments={comments} postId={id}/>}
       </div>
     </div>
   );

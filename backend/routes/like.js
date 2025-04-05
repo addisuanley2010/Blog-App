@@ -43,12 +43,12 @@ router.post("/:postId", authentication, async (req, res) => {
       const like = await prisma.like.create({
         data: { userId: parseInt(userId), postId: parseInt(postId) },
       });
-      res.json({message:"you like the post", like, user: req.user });
+      res.json({success:true,message:"post liked", userId,postId });
     } else {
       const deletedLike = await prisma.like.delete({
         where: { id: parseInt(isLiked.id) },
       });
-      res.json({ message: "You Unlike the post successfully!", deletedLike });
+      res.json({ success:false,userId,postId,message: " post unliked!", deletedLike });
     }
   } catch (err) {
       console.log(err)

@@ -63,7 +63,8 @@ const router = express.Router();
  *         description: Server Error
  */
 router.post("/", async (req, res) => {
-  const { email, password, name, gender, age } = req.body;
+  console.log(req.body);
+  const { email, password, name, gender, age,username } = req.body;
 
   try {
     const existingUser = await prisma.user.findUnique({
@@ -71,7 +72,7 @@ router.post("/", async (req, res) => {
     });
 
     if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
+      return res.status(400).json({ message: "User already exists",success:false });
     }
 
     const hashedPassword = await hashPassword(password);
@@ -80,7 +81,7 @@ router.post("/", async (req, res) => {
       data: {
         email,
         password: hashedPassword,
-        username: email.split("@")[0],
+        username:username?username: email.split("@")[0],
         status: "ONLINE",
         lastActive: new Date(),
       },
@@ -92,7 +93,7 @@ router.post("/", async (req, res) => {
           userId: user.id,
           name,
           gender,
-          age,
+          age: parseInt(age),
         },
       });
     }
@@ -104,10 +105,11 @@ router.post("/", async (req, res) => {
         username: user.username,
       },
       profile,
+      success: true,
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Server Error" });
+    res.status(500).json({ message: "Server Error" ,success:false});
   }
 });
 

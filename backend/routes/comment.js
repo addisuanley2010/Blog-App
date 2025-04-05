@@ -52,9 +52,9 @@ router.post("/:postId", authentication, async (req, res) => {
     const comment = await prisma.coment.create({
       data: { content, authorId: parseInt(userId), postId: parseInt(postId) },
     });
-    res.json({ comment, user: req.user });
+    res.json({message:"comment added!",success:true, comment, user: req.user });
   } catch (err) {
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Server error" ,success:false});
   }
 });
 
