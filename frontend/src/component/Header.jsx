@@ -7,10 +7,10 @@ const Header = ({ message, paths, toggleModal }) => {
     (state) => state.userData
   );
   const navigate = useNavigate();
-  const [isMenuOpen, setIsMenuOpen] = useState(false); // State to manage mobile menu visibility
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleToggleMenu = () => {
-    setIsMenuOpen((prev) => !prev); // Toggle the menu state
+    setIsMenuOpen((prev) => !prev);
   };
 
   return (

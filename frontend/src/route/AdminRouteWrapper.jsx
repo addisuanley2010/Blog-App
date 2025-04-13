@@ -8,6 +8,7 @@ import Header from "../component/Header";
 import Profile from "../component/Profile";
 import { AdminPaths } from "../utils/Paths";
 import MyPost from "../page/private/MyPost";
+import CreatePost from "../page/private/CreatePost";
 const AdminRouteWrapper = () => {
   const [isModalOpen, setModalOpen] = useState(false);
   const toggleModal = () => {
@@ -16,17 +17,23 @@ const AdminRouteWrapper = () => {
 
   return (
     <>
-      <Header message={"Admin Panel"} paths={AdminPaths} toggleModal={toggleModal} />
-        <Routes>
-          <Route index path="/dashboard" element={<Dashboard />} />
+      <Header
+        message={"Admin Panel"}
+        paths={AdminPaths}
+        toggleModal={toggleModal}
+      />
+      <Routes>
+        <Route index path="/dashboard" element={<Dashboard />} />
         <Route path="/" element={<HomePage />} />
         <Route path="/mypost" element={<MyPost />} />
 
-          <Route path="/user" element={<ManageUser />} />
-          <Route path="/*" element={<NotFoundPage />} />
-          <Route path="/login/*" element={<Navigate to="/" />} />
-        </Routes>
-      {isModalOpen && <Profile toggleModal={ toggleModal} />}
+        <Route path="/user" element={<ManageUser />} />
+        <Route path="/create" element={<CreatePost />} />
+
+        <Route path="/*" element={<NotFoundPage />} />
+        <Route path="/login/*" element={<Navigate to="/" />} />
+      </Routes>
+      {isModalOpen && <Profile toggleModal={toggleModal} />}
     </>
   );
 };

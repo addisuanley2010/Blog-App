@@ -1,28 +1,17 @@
 import {  createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-        user: {
-                _id: '',
-                full_name: '',
-                user_name: '',
-                email: '',
-                password: '',
-                gender: '',
-                phone: '',
-                address: '',
-                qualification: '',
-                role: '',
-                verified: false,
-        },
+        
         loading: false,
         isAuthenticated: false,
         success: false,
         message: '',
         token: '',
+        users: [],
 };
 
-const userSlice = createSlice({
-        name: 'user',
+const usersSlice = createSlice({
+        name: 'usersList',
         initialState,
         reducers: {
                 loading: (state, action) => {
@@ -36,8 +25,8 @@ const userSlice = createSlice({
                         return state
                 },
 
-                addUserToStore: (state, action) => {
-                        state.user = action.payload.user
+                addUsersToStore: (state, action) => {
+                        state.users = action.payload || []
                         state.loading = false
                         state.success = action.payload.success
                         state.isAuthenticated = action.payload.isAuthenticated
@@ -45,8 +34,7 @@ const userSlice = createSlice({
                         state.token = action.payload.token
                         return state
                 }
-              
         }
 })
-export const { addUserToStore, loading } = userSlice.actions
-export default userSlice.reducer;
+export const { addUsersToStore, loading } = usersSlice.actions
+export default usersSlice.reducer;

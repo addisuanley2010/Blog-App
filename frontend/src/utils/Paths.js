@@ -1,8 +1,10 @@
 export const AdminPaths = [
-    { name: "Manage User", path: "user" },
-    { name: "Home", path: "" },
+  { name: "Home", path: "" },
   { name: "Dashboard", path: "dashboard" },
-    { name: "My Post", path: "mypost" },
+  { name: "Manage User", path: "user" },
+  { name: "My Post", path: "mypost" },
+  { name: "Create", path: "create" },
+
   ];
 export const publicPaths = [
   { name: "Home", path: "" },

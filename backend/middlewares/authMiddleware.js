@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 export const authentication = async (req, res, next) => {
 
+  console.log(req.headers)
 
 
   let token;
@@ -12,7 +13,8 @@ export const authentication = async (req, res, next) => {
       token = req.headers.authorization.split(" ")[1];
       const decoded = await jwt.verify(token, process.env.JWT_SECRET);
       req.user = decoded;
-      next();
+      req.user.isBlocked? res.status(401).json({ message: "you are blocked! contact the admin. okay", error,success:false }):next();
+
     } catch (error) {
       console.log(error);
       res.status(401).json({ message: "Not authorized", error });

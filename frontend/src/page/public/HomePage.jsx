@@ -4,6 +4,7 @@ import { fetchPostRequest } from "../../feature/postSlice";
 import PostList from "../../component/PostList";
 import LoadingSpinner from "../../component/LoadingSpinner";
 import ErrorMessage from "../common/ErrorMessage";
+import EmptyPost from "./EmptyPost";
 
 function HomePage() {
   const dispatch = useDispatch();
@@ -13,9 +14,9 @@ function HomePage() {
     // dispatch(fetchPostRequest());
     dispatch({ type: "post/fetchPostRequest" });
   }, [dispatch]);
+  
   if (error) return <ErrorMessage />;
   if (loading) return <LoadingSpinner />;
-
   return (
     <div>
       <PostList posts={post}  />

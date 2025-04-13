@@ -14,7 +14,7 @@ const App = () => {
     dispatch({ type: "user/check-auth" });
   }, [dispatch]);
 
-  const { isAuthenticated, user, loading, error } = useSelector(
+  const { isAuthenticated, user, loading, error,isBlocked } = useSelector(
     (state) => state.userData
   );
 
@@ -22,7 +22,7 @@ const App = () => {
   if (error) return <ErrorMessage message={error} />;
   return (
     <Routes>
-      {!isAuthenticated ? (
+      {(!isAuthenticated )? (
         <>
           <Route path="/*" element={<PublicRouteWrapper />} />
         </>

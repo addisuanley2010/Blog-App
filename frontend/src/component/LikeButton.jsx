@@ -7,10 +7,10 @@ const LikeButton = ({ myLikes, postId }) => {
   const [likes, setLikes] = useState(myLikes);
   const [isLiked, setIsLiked] = useState(false);
   const dispatch = useDispatch();
-  const userId = user?.userId;
+  const userId = user?.id;
 
   useEffect(() => {
-    const likedByUser = likes.some((like) => like.userId === userId);
+    const likedByUser = likes?.some((like) => like.userId === userId);
     setIsLiked(likedByUser);
   }, [likes, userId]);
 
@@ -35,10 +35,11 @@ const LikeButton = ({ myLikes, postId }) => {
     <button className="flex items-center flex-col "
       onClick={handleLike}  >
       <>{isLiked ? <AiFillLike className="text-red-600 text-3xl" /> : <SlLike />}</>
-      <span className="text-xs italic text-rose-400 underline"> {likes.length > 0 && likes.length+" Likes"}
+      <span className="text-xs italic text-rose-400 underline"> {likes?.length > 0 && likes.length+" Likes"}
       </span>
     </button>
   );
 };
+
 
 export default LikeButton;

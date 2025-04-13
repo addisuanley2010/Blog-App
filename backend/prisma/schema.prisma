@@ -18,6 +18,10 @@ model User {
   createdAt     DateTime      @default(now())
   role          String        @default("user")
   profile       Profile? 
+  isVerified    Boolean       @default(false)
+  isBlocked     Boolean       @default(false)
+  otp          String?
+  otpExpiresAt DateTime?
   posts         Post[]
   comments      Coment[]
   likes         Like[]

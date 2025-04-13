@@ -46,11 +46,22 @@ const PostItem = ({ post }) => {
       <p className="text-gray-500 text-sm mb-4">
         Posted on: {new Date(createdAt).toLocaleString()}
       </p>
-      <div className="flex justify-start items-center gap-4">
-        {isAuthenticated && <LikeButton myLikes={likes} postId={id} />}
-        {isAuthenticated && <CommentSection myComments={comments} postId={id}/>}
-      </div>
-    </div>
+      <div className="flex justify-start items-center gap-6">
+        <div className="flex items-center text-gray-600">
+          {isAuthenticated ? (
+            <LikeButton myLikes={likes} postId={id} />
+          ) : (
+            <span className="text-sm font-medium">{likes?.length} Likes</span>
+          )}
+        </div>
+        <div className="flex items-center text-gray-600">
+          {isAuthenticated ? (
+            <CommentSection myComments={comments} postId={id}/>
+          ) : (
+            <span className="text-sm font-medium">{comments?.length} Comments</span>
+          )}
+        </div>
+      </div>    </div>
   );
 };
 

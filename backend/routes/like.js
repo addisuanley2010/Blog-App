@@ -38,7 +38,7 @@ router.post("/:postId", authentication, async (req, res) => {
             userId: parseInt(userId),
             postId: parseInt(postId),
       },
-    });
+    }); 
     if (!isLiked) {
       const like = await prisma.like.create({
         data: { userId: parseInt(userId), postId: parseInt(postId) },

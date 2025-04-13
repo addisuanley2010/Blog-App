@@ -8,6 +8,8 @@ import {
   authorization,
 } from "../middlewares/authMiddleware.js";
 const router = express.Router();
+import twilio from "twilio";
+import crypto from "crypto";
 /**
  * @swagger
  * /api/users:
@@ -62,9 +64,30 @@ const router = express.Router();
  *       500:
  *         description: Server Error
  */
+
+const accountSid = process.env.accountSid; 
+const authToken = process.env.authToken;    
+const client = new twilio(accountSid, authToken);
+
+async function sendOtp(phone) {
+  const otp = crypto.randomInt(100000, 999999).toString();
+
+  try {
+    const message = await client.messages.create({
+      body: `Your OTP is: ${otp}`,
+      from: +16406143590, 
+      to: phone 
+    });
+
+    return otp; 
+  } catch (error) {
+    throw error; 
+  }
+}
+
 router.post("/", async (req, res) => {
   console.log(req.body);
-  const { email, password, name, gender, age,username } = req.body;
+  const { email, password, name, gender, age, username, phone } = req.body;
 
   try {
     const existingUser = await prisma.user.findUnique({
@@ -72,7 +95,7 @@ router.post("/", async (req, res) => {
     });
 
     if (existingUser) {
-      return res.status(400).json({ message: "User already exists",success:false });
+      return res.status(400).json({ message: "User already exists", success: false });
     }
 
     const hashedPassword = await hashPassword(password);
@@ -81,9 +104,14 @@ router.post("/", async (req, res) => {
       data: {
         email,
         password: hashedPassword,
-        username:username?username: email.split("@")[0],
+        username: username ? username : email.split("@")[0],
         status: "ONLINE",
         lastActive: new Date(),
+        isVerified: false,
+        isBlocked: false,
+        otp: null,
+        otpExpiresAt: null,
+        phone,
       },
     });
 
@@ -97,8 +125,18 @@ router.post("/", async (req, res) => {
         },
       });
     }
+
+    // const otp = await sendOtp(phone);
+    // await prisma.user.update({
+    //   where: { id: user.id },
+    //   data: {
+    //     otp,
+    //     otpExpiresAt: new Date(Date.now() + 10 * 60000), // OTP valid for 10 minutes
+    //   },
+    // });
+
     res.status(201).json({
-      message: "User Registered Successfully!",
+      message: "User Registered Successfully! .",
       user: {
         id: user.id,
         email: user.email,
@@ -108,8 +146,8 @@ router.post("/", async (req, res) => {
       success: true,
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server Error" ,success:false});
+    console.error('Registration error:', err);
+    res.status(500).json({ message: "Server Error", success: false });
   }
 });
 
@@ -323,6 +361,62 @@ router.delete(
     }
   }
 );
+
+/**
+ * @swagger
+ * /api/users/{id}:
+ *   put:
+ *     summary: Verify a user by ID(admin only)
+ *     security:
+ *      - BearerAuth: []
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           description: User ID
+ *     responses:
+ *       200:
+ *         description: User Verified successfully
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server Error
+ */
+router.put(
+  "/:id",
+  authentication,
+  authorization(["admin"]),
+  async (req, res) => {
+    try {
+      const user = await prisma.user.findUnique({
+        where: {
+          id: parseInt(req.params.id),
+        },
+      });
+      if (!user) {
+        return res.status(404).json({ message: "User not found",success:false });
+      }
+      if (user.isVerified) {
+        return res.status(400).json({ message: "User already verified",success:false });
+      }
+      await prisma.user.update({
+        where: {
+          id: parseInt(req.params.id),
+        },
+        data: {
+          isVerified: true,
+        },
+      });
+      res.status(200).json({ message: "User verified successfully",success:true });
+    } catch (err) {
+      console.error(err.message);
+      res.status(500).json({ message: "Server Error",success:false });
+    }
+  }
+);
 /**
  * @swagger
  * /api/users/login:
@@ -377,17 +471,26 @@ router.delete(
         email,
       },
     });
+
     if (!user) {
-       return res.json({ message: "User not found",success:false });
+      return res.json({ message: "User not found", success: false });
     }
+
     const isMatch = await comparePassword(password, user.password);
     if (!isMatch) {
-      return res.json({ message: "incorrect password" ,success:false});
+      return res.json({ message: "Incorrect password", success: false });
     }
-    const token = await generateToken(user.id, user.role, user.username);
-   return res.json({
-     message: "user logged in successfully!",
-     success:true,
+
+    if (!user.isVerified) {
+      return res.json({ message: "User not verified. ", success: false });
+    }
+    if (user.isBlocked) {
+      return res.json({ message: "User is blocked ,please contact the Admin. ", success: false });
+    }
+    const token = await generateToken(user.id, user.role, user.username, user.isVerified, user.isBlocked);
+      return res.json({
+      message: "User logged in successfully!",
+      success: true,
       token,
       isAuthenticated: true,
       user: { 
@@ -395,18 +498,32 @@ router.delete(
         email: user.email,
         username: user.username,
         role: user.role,
+        isVerified: user.isVerified,
+        isBlocked:user.isBlocked
+
       },
     }); 
   } catch (err) {
     console.error(err.message);
-    res.status(500).json({ message: "Server Error",success:false });
+    res.status(500).json({ message: "Server Error", success: false });
   }
- });
+});
 
- router.get("/check/auth", authentication, (req, res) => {
-  const user = req.user;
-  res.send({ success: true, message: "authenticated user", user, token: "", isAuthenticated: true })
+ router.get("/check/auth", authentication, async(req, res) => {
+  //  const user = req.user;
+   const user = await prisma.user.findUnique({
+    where: {
+      id:req.user.userId,
+    },
+  });
+   const token = await generateToken(user.id, user.role, user.username, user.isVerified, user.isBlocked);
+   console.log(user)
+   if (user.isBlocked) {
+    return res.json({ message: "User is blocked ,please contact the Admin. yes ", success: false, isAuthenticated: false });
+  } else {
 
+  res.send({ success: true, message: "authenticated user", user, token: token, isAuthenticated: true })
+}
 });
 
 export default router;

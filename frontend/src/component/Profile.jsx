@@ -13,7 +13,7 @@ const Profile = ({ toggleModal }) => {
             <h2 className="text-xl font-bold mb-4">Profile Options</h2>
             <div className="flex items-center mb-4">
               <img
-                src={user.profileImage}
+                src={user.profileImage? user.profileImage : "https://www.google.com/url?sa=i&url=https%3A%2F%2Funsplash.com%2Fs%2Fphotos%2Ffree-images&psig=AOvVaw2yV4f4MpemgD9x6lPYucaM&ust=1744456534041000&source=images&cd=vfe&opi=89978449&ved=0CBEQjRxqFwoTCODHt5Ltz4wDFQAAAAAdAAAAABAE"}
                 alt="Profile"
                 className="w-16 h-16 rounded-full border-2 border-blue-500 mr-3"
               />
